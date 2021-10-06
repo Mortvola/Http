@@ -1,0 +1,21 @@
+{
+  "name": "@mortvola/http",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "exit",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.27",
+    "mobx": "^6.3.3",
+    "react": "^17.0.2"
+  }
+}
