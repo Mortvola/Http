@@ -17,19 +17,19 @@ class Http {
     return headers;
   }
 
-  static async fetch(url: string, options?: RequestInit): Promise<HttpResponse> {
+  static async fetch<Res>(url: string, options?: RequestInit): Promise<HttpResponse<Res>> {
     const res = await fetch(url, options);
 
-    const response = new HttpResponse(res);
+    const response = new HttpResponse<Res>(res);
 
     await response.check();
 
     return response;
   }
 
-  static async patch (url: string, body: unknown): Promise<HttpResponse> {
+  static async patch<Req, Res>(url: string, body: Req): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch(url, {
+      Http.fetch<Res>(url, {
         method: 'PATCH',
         headers: Http.jsonHeaders(),
         body: JSON.stringify(body),
@@ -37,9 +37,9 @@ class Http {
     )
   }
 
-  static async put(url: string, body: unknown): Promise<HttpResponse> {
+  static async put<Req, Res>(url: string, body: Req): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch(url, {
+      Http.fetch<Res>(url, {
         method: 'PUT',
         headers: Http.jsonHeaders(),
         body: JSON.stringify(body),
@@ -47,9 +47,9 @@ class Http {
     )
   }
 
-  static async get(url: string): Promise<HttpResponse> {
+  static async get<Res>(url: string): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch(url, {
+      Http.fetch<Res>(url, {
         method: 'GET',
         headers: Http.defaultHeaders(),
       })
@@ -65,24 +65,24 @@ class Http {
     )
   }
 
-  static async post(url: string, body?: unknown): Promise<HttpResponse> {
+  static async post<Req, Res>(url: string, body?: Req): Promise<HttpResponse<Res>> {
     if (body === undefined) {
-      return Http.fetch(url, {
+      return Http.fetch<Res>(url, {
         method: 'POST',
         headers: Http.defaultHeaders(),
       });
     }
 
-    return Http.fetch(url, {
+    return Http.fetch<Res>(url, {
       method: 'POST',
       headers: Http.jsonHeaders(),
       body: JSON.stringify(body),
     });
   }
 
-  static async postForm(url: string, form: FormData): Promise<HttpResponse> {
+  static async postForm<Res>(url: string, form: FormData): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch(url, {
+      Http.fetch<Res>(url, {
         method: 'POST',
         headers: Http.jsonHeaders(),
         body: form,

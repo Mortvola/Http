@@ -1,7 +1,7 @@
 import { isRouteNotFound, isServerErrorResponse, serverError } from './ServerError';
 
-class HttpResponse {
-  fetchedBody: unknown | null = null;
+class HttpResponse<T = void> {
+  fetchedBody: Promise<T> | null = null;
 
   response: Response;
 
@@ -21,11 +21,11 @@ class HttpResponse {
     return this.response.status;
   }
 
-  async json (): Promise<any> {
+  async json (): Promise<T> {
     return this.body();
   }
 
-  async body (): Promise<unknown> {
+  async body (): Promise<T> {
     if (this.fetchedBody !== null) {
       return this.fetchedBody;
     }
@@ -38,6 +38,10 @@ class HttpResponse {
     }
     catch (error) {
       console.log(error);
+    }
+
+    if (this.fetchedBody === null) {
+      throw new Error('body is null');
     }
 
     return this.fetchedBody;
