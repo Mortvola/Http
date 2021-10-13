@@ -56,9 +56,9 @@ class Http {
     )
   }
 
-  static async delete(url: string): Promise<HttpResponse> {
+  static async delete<Res>(url: string): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch(url, {
+      Http.fetch<Res>(url, {
         method: 'DELETE',
         headers: Http.defaultHeaders(),
       })
