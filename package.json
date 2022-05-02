@@ -1,6 +1,6 @@
 {
   "name": "@mortvola/http",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,11 +18,11 @@
     "package.json"
   ],
   "peerDependencies": {
-    "react": "^17.0.2"
+    "react": "^18.1.0"
   },
   "devDependencies": {
-    "@types/react": "^17.0.27",
+    "@types/react": "^18.0.8",
     "mobx": "^6.3.3",
-    "react": "^17.0.2"
+    "react": "^18.1.0"
   }
 }
