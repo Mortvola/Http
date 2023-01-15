@@ -1,10 +1,16 @@
 import HttpResponse from './HttpResponse';
 
 class Http {
+  static token: string | null = null;
+
   static defaultHeaders(): Headers {
     const headers = new Headers({
       Accept: 'application/json',
     });
+
+    if (Http.token) {
+      headers.append('Authorization', `Bearer ${Http.token}`);
+    }
 
     return headers;
   }
