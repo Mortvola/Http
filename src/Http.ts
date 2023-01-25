@@ -48,7 +48,7 @@ class Http {
     if (!res.ok && res.status === 401 && Http.refreshToken && options) {
       if (!Http.refreshing) {
         Http.refreshing = new Promise(async (resolve, reject) => {
-          let res2 = await fetch('/api/refresh', {
+          let res2 = await fetch('/api/v1/refresh', {
             method: 'POST',
             headers: Http.jsonHeaders(),
             body: JSON.stringify({
