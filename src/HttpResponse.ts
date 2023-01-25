@@ -1,3 +1,4 @@
+import Http from './Http';
 import { isRouteNotFound, isServerErrorResponse, serverError } from './ServerError';
 
 class HttpResponse<T = void> {
@@ -60,7 +61,9 @@ class HttpResponse<T = void> {
       else if (this.response.status === 401) {
         // If the user is not authorized, then send them 
         // back to the signin page.
-        window.location.replace('/signin');
+        if (Http.unauthorizedHandler) {
+          Http.unauthorizedHandler();
+        }
       }
       else if (this.response.status === 404) {
         if (isRouteNotFound(responseBody)) {

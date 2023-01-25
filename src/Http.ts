@@ -1,15 +1,31 @@
 import HttpResponse from './HttpResponse';
 
 class Http {
-  static token: string | null = null;
+  static setTokens(accessToken: string | null, refreshToken: string | null) {
+    Http.accessToken = accessToken;
+    Http.refreshToken = refreshToken;
+
+    if (refreshToken) {
+      window.localStorage.setItem('token', refreshToken)
+    }
+    else {
+      window.localStorage.removeItem('token');
+    }
+  }
+
+  private static accessToken: string | null = null;
+  public static refreshToken: string | null = null;
+  private static refreshing: Promise<boolean> | null = null;
+
+  public static unauthorizedHandler: (() => void) | null = null;
 
   static defaultHeaders(): Headers {
     const headers = new Headers({
       Accept: 'application/json',
     });
 
-    if (Http.token) {
-      headers.append('Authorization', `Bearer ${Http.token}`);
+    if (Http.accessToken) {
+      headers.append('Authorization', `Bearer ${Http.accessToken}`);
     }
 
     return headers;
@@ -23,8 +39,62 @@ class Http {
     return headers;
   }
 
-  static async fetch<Res>(url: string, options?: RequestInit): Promise<HttpResponse<Res>> {
-    const res = await fetch(url, options);
+  static async fetch<Res>(url: string, headers: Headers, options?: RequestInit): Promise<HttpResponse<Res>> {
+    let res = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    if (!res.ok && res.status === 401 && Http.refreshToken && options) {
+      if (!Http.refreshing) {
+        Http.refreshing = new Promise(async (resolve, reject) => {
+          let res2 = await fetch('/api/refresh', {
+            method: 'POST',
+            headers: Http.jsonHeaders(),
+            body: JSON.stringify({
+              data: {
+                refresh: Http.refreshToken,
+              },
+            }),
+          });
+    
+          type Tokens = {
+            data: {
+              refresh: string,
+              access: string,
+            },
+          }
+      
+          if (res2.ok) {
+            const body = await res2.json() as Tokens;
+    
+            Http.setTokens(body.data.access, body.data.refresh);
+
+            resolve(true);
+          }
+          else {
+            Http.setTokens(null, null);
+
+            resolve(false);
+          }
+        });
+      }
+
+      // Wait for refresh request to complete.
+      const refreshed = await Http.refreshing
+      Http.refreshing = null;
+
+      if (refreshed) {
+        // If the refresh succeeded then
+        // set authorization header and try again.
+        headers.set('Authorization', `Bearer ${Http.accessToken}`)
+
+        res = await fetch(url, {
+          ...options,
+          headers,
+        });
+      }
+    }
 
     const response = new HttpResponse<Res>(res);
 
@@ -35,9 +105,8 @@ class Http {
 
   static async patch<Req, Res>(url: string, body: Req): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch<Res>(url, {
+      Http.fetch<Res>(url, Http.jsonHeaders(), {
         method: 'PATCH',
-        headers: Http.jsonHeaders(),
         body: JSON.stringify(body),
       })
     )
@@ -45,9 +114,8 @@ class Http {
 
   static async put<Req, Res>(url: string, body: Req): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch<Res>(url, {
+      Http.fetch<Res>(url, Http.jsonHeaders(), {
         method: 'PUT',
-        headers: Http.jsonHeaders(),
         body: JSON.stringify(body),
       })
     )
@@ -55,46 +123,43 @@ class Http {
 
   static async get<Res>(url: string): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch<Res>(url, {
+      Http.fetch<Res>(url, Http.defaultHeaders(), {
         method: 'GET',
-        headers: Http.defaultHeaders(),
       })
     )
   }
 
   static async delete<Res>(url: string): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch<Res>(url, {
+      Http.fetch<Res>(url, Http.defaultHeaders(), {
         method: 'DELETE',
-        headers: Http.defaultHeaders(),
       })
     )
   }
 
   static async post<Req, Res>(url: string, body?: Req): Promise<HttpResponse<Res>> {
     if (body === undefined) {
-      return Http.fetch<Res>(url, {
+      return Http.fetch<Res>(url, Http.defaultHeaders(), {
         method: 'POST',
-        headers: Http.defaultHeaders(),
       });
     }
 
-    return Http.fetch<Res>(url, {
+    return Http.fetch<Res>(url, Http.jsonHeaders(), {
       method: 'POST',
-      headers: Http.jsonHeaders(),
       body: JSON.stringify(body),
     });
   }
 
   static async postForm<Res>(url: string, form: FormData): Promise<HttpResponse<Res>> {
     return (
-      Http.fetch<Res>(url, {
+      Http.fetch<Res>(url, Http.jsonHeaders(), {
         method: 'POST',
-        headers: Http.jsonHeaders(),
         body: form,
       })
     )
   }
 }
+
+Http.refreshToken = window.localStorage.getItem('token')
 
 export default Http;
