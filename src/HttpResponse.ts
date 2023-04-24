@@ -36,6 +36,9 @@ class HttpResponse<T = void> {
       if (contentType && /^application\/json/.test(contentType)) {
         this.fetchedBody = this.response.json();
       }
+      else {
+        this.fetchedBody = this.response.text() as any;
+      }
     }
     catch (error) {
       console.log(error);

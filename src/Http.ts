@@ -13,7 +13,7 @@ class Http {
     }
   }
 
-  private static accessToken: string | null = null;
+  public static accessToken: string | null = null;
   public static refreshToken: string | null = null;
   private static refreshing: Promise<boolean> | null = null;
 
