@@ -49,7 +49,7 @@ class Http {
       Http.refreshToken = localStorage.getItem('token')
     }
 
-    if (!res.ok && res.status === 401 && Http.refreshToken && options) {
+    if (!res.ok && res.status === 401 && Http.refreshToken) {
       if (!Http.refreshing) {
         Http.refreshing = new Promise(async (resolve, reject) => {
           let res2 = await fetch('/api/v1/refresh', {
@@ -97,6 +97,8 @@ class Http {
           ...options,
           headers,
         });
+      } else if (Http.unauthorizedHandler) {
+        Http.unauthorizedHandler();
       }
     }
 
